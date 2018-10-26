@@ -1,0 +1,27 @@
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+add: olcSyncRepl
+olcSyncRepl: rid=001
+  provider=ldap://ldap0.{{domain}}.{{suffix}}:389/
+  bindmethod=simple
+  binddn="cn={{admin_account}},dc={{domain}},dc={{suffix}}"
+  credentials=xxxxxx
+  searchbase="dc={{domain}},dc={{suffix}}"
+  scope=sub
+  schemachecking=on
+  type=refreshAndPersist
+  interval=00:00:05:00
+olcSyncRepl: rid=002
+  provider=ldap://ldap1.{{domain}}.{{suffix}}:389/
+  bindmethod=simple
+  binddn="cn={{admin_account}},dc={{domain}},dc={{suffix}}"
+  credentials=xxxxxx
+  searchbase="dc={{domain}},dc={{suffix}}"
+  scope=sub
+  schemachecking=on
+  type=refreshAndPersist
+  interval=00:00:05:00
+-
+
+add: olcMirrorMode
+olcMirrorMode: TRUE

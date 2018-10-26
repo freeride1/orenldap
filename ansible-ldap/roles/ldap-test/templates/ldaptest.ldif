@@ -1,0 +1,17 @@
+dn: uid=ldaptest,ou=People,dc=test,dc=local
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: ldaptest
+uid: ldaptest
+uidNumber: 9988
+gidNumber: 100
+homeDirectory: /home/ldaptest
+loginShell: /bin/bash
+gecos: LDAP Replication Test User
+userPassword: {crypt}x
+shadowLastChange: 17058
+shadowMin: 0
+shadowMax: 99999
+shadowWarning: 7

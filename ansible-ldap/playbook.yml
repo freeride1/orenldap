@@ -1,0 +1,44 @@
+--- # Round 3! Fight!
+- hosts: all
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  connection: ssh
+  gather_facts: yes
+  vars_files:
+    - ~/ansible-ldap/global_vars.yml
+  roles:
+    - hosts_update
+
+- hosts: test1
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  connection: ssh
+  gather_facts: yes
+  vars_files:  
+    - ~/ansible-ldap/global_vars.yml 
+  vars:
+    server_id: 0
+  roles:
+    - hostname_config
+    - install
+    - ldap-config
+#    - ldap-test
+    - replication
+#    - calculation
+- hosts: test2
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  connection: ssh
+  gather_facts: yes
+  vars_files:
+    - ~/ansible-ldap/global_vars.yml
+  vars:
+    server_id: 1
+  roles:
+    - hostname_config
+    - install
+    - ldap-config
+    - replication

@@ -1,0 +1,9 @@
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+delete: olcSyncRepl
+
+-
+dn: olcDatabase={2}hdb,cn=config
+changetype: modify
+delete: olcMirrorMode
+

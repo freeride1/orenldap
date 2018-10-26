@@ -1,0 +1,15 @@
+---
+# tasks file for hosts_update
+
+- name: /etc/hosts checking
+  shell: 'cat /etc/hosts'
+  register: host_upd_status
+
+- name: test1
+  shell: echo {{ hostvars[groups['zz'][item]]['ansible_facts']['eth0']['ipv4']['address'] }} {{srvhost}}{{item}}.{{domain}}.{{suffix}} {{groups['zz'][item]}}  >> //etc/hosts
+  when: '"{{groups["zz"][item]}}" not in host_upd_status.stdout'
+  with_items:
+  - 0
+  - 1 
+
+

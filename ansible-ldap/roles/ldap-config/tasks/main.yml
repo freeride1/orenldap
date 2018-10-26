@@ -1,0 +1,118 @@
+---
+# tasks file for ldap-config
+
+- name: Generate BaseDN administrator password
+  command: slappasswd -s {{slapd_root_pw}}
+  register: slapd_reg_pwd
+
+- name: RootPW fot config{0} template 
+  template:
+    src: ~/ansible-ldap/roles/ldap-config/templates/olcrootpw0.ldif 
+    dest: ~/olcrootpw0.ldif
+
+#- name: RootPW config{0} exists check
+#  command: cat /etc/openldap/slapd.d/cn=config/olcDatabase={0}config.ldif
+#  register: rootpw_conf0
+
+#- name: olc RootPW fot config{0}
+#  command: ldapadd -Y EXTERNAL -H ldapi:/// -f ~/olcrootpw0.ldif
+#  when:  
+
+- name: LDAP Manager`s account with pwdhash setup {0}config
+  ldap_attr:
+    dn: olcDatabase={0}config,cn=config
+    name: olcRootPW
+    values: "{{ slapd_reg_pwd.stdout }}"
+    state: exact
+
+- name: LDAP Manager`s account with pwdhash setup {2}hdb
+  ldap_attr:
+    dn: olcDatabase={2}hdb,cn=config
+    name: "{{ item.key }}"
+    values: "{{ item.value }}"
+    state: exact
+  with_dict:
+    olcSuffix: dc={{domain}},dc={{suffix}}
+    olcRootDN: cn={{admin_account}},dc={{domain}},dc={{suffix}}
+    olcRootPW: "{{ slapd_reg_pwd.stdout }}"
+
+- name: Search for schemas
+  command: ldapsearch -H ldapi:// -Y EXTERNAL -b "cn=config" -LLL -Q dn
+  register: ldap_search_result
+
+- name: Ldap_search_result analysis
+  command: 'ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/{{item}}.ldif'
+  when: '"{{item}}" not in ldap_search_result.stdout'
+  with_items:
+    - cosine
+    - nis
+    - inetorgperson
+
+- name:  olcMonitor access tuning {1}monitor
+  ldap_attr:
+    dn: olcDatabase={1}monitor,cn=config
+    name: olcAccess
+    values: '{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" read by dn.base="cn={{admin_account}},dc={{domain}},dc={{suffix}}" read by * none'
+    state: exact
+
+- name: OlcSuffix and olcRootDN for {2}hdb
+  ldap_attr:
+    dn: olcDatabase={2}hdb,cn=config
+    name: "{{ item.key }}"
+    values: "{{ item.value }}"
+    state: exact
+  with_dict:
+    olcSuffix: dc={{domain}},dc={{suffix}}
+    olcRootDN: cn={{admin_account}},dc={{domain}},dc={{suffix}}
+
+- name: olcAccess check {2}hdb
+  shell: cat /etc/openldap/slapd.d/cn=config/olcDatabase={2}hdb.ldif
+  register: olcaccess_exists
+
+- name: olcAccess template {2}hdb
+  template: 
+    src: ~/ansible-ldap/roles/ldap-config/templates/olcaccesshdb.ldif
+    dest: ~/olcaccesshdb.ldif
+  when: '"olcAccess" not in olcaccess_exists.stdout'
+
+- name: olcAccess add {2}hdb
+  command: ldapadd -Y EXTERNAL -H ldapi:/// -f ~/olcaccesshdb.ldif
+  when: '"olcAccess" not in olcaccess_exists.stdout'
+
+#- name: olcMonitor access tuning {2}hdb
+#  ldap_attr:
+#    dn: olcDatabase={2}hdb,cn=config
+#    name: olcAccess
+#    values:
+#      - >-
+#        {0}to attrs=userPassword,shadowLastChange 
+#        by dn="{{admin_account}},dc={{domain}},dc={{suffix}}" write 
+#       by anonymous auth by self write by * none
+#      - >-
+#        {1}to dn.base="" by * read
+#      - >-
+#        {2}to * by dn="{{admin_account}},dc={{domain}},dc={{suffix}}" write by * read
+#    state: exact
+
+- name: Checking if default users and groups exists
+  shell: ldapsearch -H ldapi:// -Y EXTERNAL -b "dc={{domain}},dc={{suffix}}" -LLL -Q
+  register: ldap_users_and_groups_list
+  ignore_errors: yes
+
+- name: Moving users and groups template
+  template:
+    src: ~/ansible-ldap/roles/ldap-config/templates/base.ldif
+    dest: ~/base.ldif
+  when: 
+    '"People" not in ldap_users_and_groups_list.stdout 
+    and "Group" not in ldap_users_and_groups_list.stdout 
+    and "{{admin_account}}" not in ldap_users_and_groups_list.stdout'
+
+- name: Landing users and groups template
+  command: ldapadd -x -w {{slapd_root_pw}}  -H ldapi:// -D "cn={{admin_account}},dc={{domain}},dc={{suffix}}" -f ~/base.ldif
+  when:
+    '"People" not in ldap_users_and_groups_list.stdout
+    and "Group" not in ldap_users_and_groups_list.stdout
+    and "{{admin_account}}" not in ldap_users_and_groups_list.stdout'
+
+

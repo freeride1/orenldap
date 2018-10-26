@@ -1,0 +1,20 @@
+---
+# tasks file for replication
+#- name: Syncprov_mod.ldif copy
+#  copy:
+#    src:  ~/ansible-ldap/roles/replication/templates/syncprov_mod.ldif
+#    dest: ~/syncprov_mod.ldif
+
+#- name: Syncprov_mod.ldif 
+#  command: ldapadd -Y EXTERNAL -H ldapi:/// -f ~/syncprov_mod.ldif
+
+- name: search for schemas
+  command: ldapsearch -H ldapi:// -Y EXTERNAL -b "cn=config" -LLL -Q dn
+  register: ldap_search_result
+
+name: ldap_search_result analysis
+#  command: echo {{ldap_search_result.stdout}} > ~/test
+
+- debug:
+  - command: ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif
+  when: '"coine" in ldap_search_result.stdout'

@@ -1,0 +1,37 @@
+---
+# tasks file for install
+- name: Install required software
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - openldap
+    - openldap-clients
+    - openldap-servers
+    - python-ldap
+    - compat-openldap
+    - openldap-devel
+
+- name: Service slapd enable
+  command: systemctl {{item}} slapd
+  with_items:
+   - enable
+   - restart
+  notify:
+   - restart slapd
+
+- name: Checking if DB_config exists
+  command: ls /var/lib/ldap/
+  register: db_config_exists
+
+- name: SampleDB config copy
+  shell:
+    cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
+    chown ldap:ldap /var/lib/ldap/
+  when: '"DB_CONFIG" not in db_config_exists.stdout'
+
+#- name: LOGs enable
+#  shell:
+#    sudo echo "local4.* /var/log/ldap.log" >> /etc/rsyslog.conf
+#    systemctl restart rsyslog
+#  when: '"local4.* /var/log/ldap.log" not in /etc/rsyslog.conf'

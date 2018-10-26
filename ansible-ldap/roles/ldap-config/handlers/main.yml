@@ -1,0 +1,7 @@
+---
+# handlers file for ldap-config
+- name: restart slapd
+  service:
+    name: slapd
+    state: restarted
+

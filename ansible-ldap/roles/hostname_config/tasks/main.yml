@@ -1,0 +1,10 @@
+---
+# tasks file for hostname_config
+
+- name: hostname fix /etc/hostname
+ # shell:  '"{{srvhost}}{{server_id}}.{{domain}}.{{suffix}}" > /etc/hostname'
+  shell: hostnamectl set-hostname "{{srvhost}}{{server_id}}.{{domain}}.{{suffix}}"
+- name: hostname fix /proc/sys/kernel/hostname
+  shell: echo '"{{srvhost}}{{server_id}}.{{domain}}.{{suffix}}" > /proc/sys/kernel/hostname'
+- name: hostname fix via Hostnamectl
+  shell: hostnamectl set-hostname {{srvhost}}{{server_id}}.{{domain}}.{{suffix}}

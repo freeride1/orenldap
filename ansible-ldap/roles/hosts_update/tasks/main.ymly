@@ -1,0 +1,16 @@
+---
+# tasks file for hosts_update
+
+- name: test
+  debug:
+    msg: 0 - {{groups['zz'][0]}}
+
+- name: test1
+#  command: 'echo "{{groups[zz][{{0}}]}}  {{domain}}{{item}}.{{suffix}}" >> ~/hosts_test'
+  shell: echo 'test12' >> /home/ec2-user/hosts_test
+  tags: cmdtest
+#  with_items:
+#   - 0
+#   - 1 
+#  when:
+#    '{{groups[zz][{{item}}]}}' not in 'lookups (~/ansible-ldap/global_vars.yml'

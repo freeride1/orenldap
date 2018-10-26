@@ -1,0 +1,6 @@
+slapd_root_pw: Ansible123
+srvhost: ldap
+domain: test
+suffix: local
+admin_account: Manager
+#server_id: 1
