@@ -21,14 +21,22 @@
    - restart slapd
 
 - name: Checking if DB_config exists
-  command: ls /var/lib/ldap/
-  register: db_config_exists
+  stat:
+    path: /var/lib/ldap/DB_CONFIG 
+  register: dbconfig
 
 - name: SampleDB config copy
-  shell:
-    cp /usr/share/openldap-servers/DB_CONFIG.example /var/lib/ldap/DB_CONFIG
-    chown ldap:ldap /var/lib/ldap/
-  when: '"DB_CONFIG" not in db_config_exists.stdout'
+  copy:
+    src: /usr/share/openldap-servers/DB_CONFIG.example 
+    dest: /var/lib/ldap/DB_CONFIG
+    remote_src: yes
+  when: dbconfig.stat.exists == False
+
+- name: Permission update
+  file: 
+    path: /var/lib/ldap/
+    owner: ldap
+    group: ldap 
 
 #- name: LOGs enable
 #  shell:

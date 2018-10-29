@@ -2,7 +2,3 @@ dn: olcDatabase={0}config,cn=config
 changetype: modify
 delete: olcSyncRepl
 
--
-dn: olcDatabase={0}config,cn=config
-changetype: modify
-delete: olcMirrorMode

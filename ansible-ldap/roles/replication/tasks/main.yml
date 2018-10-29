@@ -1,13 +1,23 @@
 ---
 # tasks file for replication
 
-- name: ServerID template
-  template:
-    src: ~/ansible-ldap/roles/replication/templates/serverid.ldif
-    dest: ~/serverid.ldif
+- name: ServerID setup
+  ldap_attr:
+    dn: cn=config
+    name: olcServerID
+    values: '{{server_id}}'
+    state: exact
 
-- name: ServerID define
-  command: ldapmodify -Y EXTERNAL -H ldapi:/// -f ~/serverid.ldif
+- name: Index reset to default
+  ldap_attr:
+    dn: olcDatabase={2}hdb,cn=config
+    name: olcDbIndex
+    values:
+      - objectClass eq,pres
+      - ou,cn,mail,surname,givenname eq,pres,sub
+      - entryUUID  eq
+      - entryCSN  eq
+    state: exact
 
 - name: Checking if olcSyncRepl destination exists in {2}hdb
   command: cat /etc/openldap/slapd.d/cn=config/olcDatabase={2}hdb.ldif
@@ -17,31 +27,46 @@
   template:
     src: ~/ansible-ldap/roles/replication/templates/syncreplrmv_hdb.ldif
     dest: ~/syncreplrmv_hdb.ldif
-#  when: '"olcSyncrepl:" in syncrepl_hdb_state.stdout'
 
 - name: Removing olcSyncRepl if exists in {2}hdb
   command: ldapadd -Y EXTERNAL -H ldapi:/// -f ~/syncreplrmv_hdb.ldif
   when: '"olcSyncrepl:" in syncrepl_hdb_state.stdout'
 
-- name: Checking if other index exists
-  command: grep olcDbIndex /etc/openldap/slapd.d/cn=config/olcDatabase={2}hdb.ldif 
-  register: other_index
 
-- name: Index reset to default
+- name: olcSyncRepl exact
   ldap_attr:
     dn: olcDatabase={2}hdb,cn=config
-    name: olcDbIndex
+    name: olcSyncRepl
     values:
-      - objectClass eq,pres
-      - ou,cn,mail,surname,givenname eq,pres,sub
+#      - rid=001 provider=ldap://ldap0.{{domain}}.{{suffix}}:389/ bindmethod=simple binddn="cn={{admin_account}},dc={{domain}},dc={{suffix}}" credentials=xxxxxx searchbase="dc={{domain}},dc={{suffix}}" scope=sub schemachecking=on type=refreshAndPersist interval=00:00:05:00
+       - >-
+         rid=001
+         provider=ldap://ldap0.{{domain}}.{{suffix}}:389/
+         bindmethod=simple
+         binddn="cn={{admin_account}},dc={{domain}},dc={{suffix}}"
+         credentials=xxxxxx
+         searchbase="dc={{domain}},dc={{suffix}}"
+         scope=sub
+         schemachecking=on
+         type=refreshAndPersist
+         interval=00:00:05:00
+       - >-
+         rid=002
+         provider=ldap://ldap1.{{domain}}.{{suffix}}:389/
+         bindmethod=simple
+         binddn="cn={{admin_account}},dc={{domain}},dc={{suffix}}"
+         credentials=xxxxxx
+         searchbase="dc={{domain}},dc={{suffix}}"
+         scope=sub
+         schemachecking=on
+         type=refreshAndPersist
+         interval=00:00:05:00
     state: exact
-  when: '"entryUUID" in other_index.stdout'
 
-- name: Template for olcdatabasehdb preparing
-  template:
-    src: ~/ansible-ldap/roles/replication/templates/olcdatabasehdb.ldif
-    dest: ~/olcdatabasehdb.ldif
-
-- name: Updating {2}hdb
-  command: ldapmodify -Y EXTERNAL -H ldapi:///  -f ~/olcdatabasehdb.ldif
+- name: olcMirrormode exact
+  ldap_attr:
+    dn: olcDatabase={2}hdb,cn=config
+    name: olcMirrorMode
+    values: 'TRUE'
+    state: exact
 
