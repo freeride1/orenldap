@@ -1,5 +1,10 @@
 ---
 # tasks file for install
+- name: install nginx rpm from a local file
+  yum: 
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+
 - name: Install required software
   yum:
     name: "{{ packages }}"
@@ -11,6 +16,8 @@
     - python-ldap
     - compat-openldap
     - openldap-devel
+    - httpd
+    - phpldapadmin
 
 - name: Service slapd enable
   command: systemctl {{item}} slapd

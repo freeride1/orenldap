@@ -1,0 +1,16 @@
+---
+# tasks file for phpldapadmin
+- name: phpmyadmin conf templating 
+  template:
+    src: ~/ansible-ldap/roles/phpldapadmin/templates/phpldapadmin.conf
+    dest: /etc/httpd/conf.d/phpldapadmin.conf
+  notify:
+   - restart httpd
+
+- name: config.php tempating
+  template:
+    src: roles/phpldapadmin/templates/phpconfig.php
+    dest: /etc/phpldapadmin/config.php
+
+- name: httpd_can_connect_ldap option 
+  shell: setsebool -P httpd_can_connect_ldap on

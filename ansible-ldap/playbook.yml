@@ -21,12 +21,11 @@
   vars:
     server_id: 0
   roles:
-    - hostname_config
-    - install
-    - ldap-config
-#    - ldap-test
-    - replication
-#    - calculation
+#    - hostname_config
+#    - install
+#    - ldap-config
+    - phpldapadmin
+#    - replication
 - hosts: test2
   remote_user: ec2-user
   become: yes
@@ -38,7 +37,8 @@
   vars:
     server_id: 1
   roles:
-    - hostname_config
+#    - hostname_config
     - install
-    - ldap-config
-    - replication
+#    - ldap-config
+#    - replication
+    - phpldapadmin
