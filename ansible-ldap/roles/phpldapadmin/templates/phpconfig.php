@@ -329,7 +329,7 @@ $servers->setValue('server','base',array('{{domain}}.{{suffix}}'));
    the directory for users (ie, if your LDAP server does not allow anonymous
    binds. */
 // $servers->setValue('login','bind_id','');
-#  $servers->setValue('login','bind_id','cn=Manager,dc=example,dc=com');
+  $servers->setValue('login','bind_id','cn={{admin_account}},dc={{domain}},dc={{suffix}}');
 
 /* Your LDAP password. If you specified an empty bind_id above, this MUST also
    be blank. */

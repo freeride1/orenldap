@@ -1,11 +1,23 @@
 ---
 # tasks file for phpldapadmin
+- name: Port change to 8010
+  shell: semanage port -l | grep http_port_t
+  register: apache_ports
+
+- name: Port change to 8010
+  shell: semanage port -a -t http_port_t -p tcp 8010
+  when: '"8010" not in apache_ports.stdout'
+
+- name: Port set to 8010
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: ^Listen
+    line: Listen 8010
+
 - name: phpmyadmin conf templating 
   template:
     src: ~/ansible-ldap/roles/phpldapadmin/templates/phpldapadmin.conf
     dest: /etc/httpd/conf.d/phpldapadmin.conf
-  notify:
-   - restart httpd
 
 - name: config.php tempating
   template:
@@ -14,3 +26,8 @@
 
 - name: httpd_can_connect_ldap option 
   shell: setsebool -P httpd_can_connect_ldap on
+
+- name: Restart service httpd, in all cases
+  service:
+    name: httpd
+    state: restarted
